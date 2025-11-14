@@ -20,6 +20,7 @@
  */
 
 using System.Collections.Generic;
+using Net.Pkcs11Interop.Common;
 using Net.Pkcs11Interop.HighLevelAPI.MechanismParams;
 
 // Note: Code in this file is maintained manually.
@@ -554,5 +555,17 @@ namespace Net.Pkcs11Interop.HighLevelAPI.Factories
         /// <param name='publicKey'>Handle to the first party's ephemeral public key</param>
         /// <returns>Parameters for the CKM_X9_42_MQV_DERIVE key derivation mechanism</returns>
         ICkX942MqvDeriveParams CreateCkX942MqvDeriveParams(ulong kdf, byte[] otherInfo, byte[] publicData, ulong privateDataLen, IObjectHandle privateData, byte[] publicData2, IObjectHandle publicKey);
+
+        /// <summary>
+        /// Creates parameters for the CKM_CLOUDHSM_SP800_108_COUNTER_KDF mechanism
+        /// </summary>
+        /// <param name='prftype'>PRF type (e.g., CKM_SHA256_HMAC, CKM_SHA512_HMAC)</param>
+        /// <param name='counterWidthInBits'>Counter width in bits (typically 32)</param>
+        /// <param name='label'>PRF label (application-specific identifier)</param>
+        /// <param name='context'>PRF context (application-specific context data)</param>
+        /// <param name='dkmLengthMethod'>DKM length method (SUM_OF_KEYS or SUM_OF_SEGMENTS)</param>
+        /// <param name='dkmWidthInBits'>DKM width in bits (typically 32)</param>
+        /// <returns>Parameters for the CKM_CLOUDHSM_SP800_108_COUNTER_KDF mechanism</returns>
+        ICkSp800108KdfParams CreateCkSp800108KdfParams(ulong prftype, uint counterWidthInBits, byte[] label, byte[] context, CK_SP800_108.DKM_LENGTH_METHOD dkmLengthMethod, uint dkmWidthInBits);
     }
 }

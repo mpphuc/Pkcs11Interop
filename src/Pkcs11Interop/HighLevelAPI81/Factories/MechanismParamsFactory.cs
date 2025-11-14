@@ -19,6 +19,7 @@
  *  Jaroslav IMRICH <jimrich@jimrich.sk>
  */
 
+using System;
 using System.Collections.Generic;
 using Net.Pkcs11Interop.Common;
 using Net.Pkcs11Interop.HighLevelAPI;
@@ -725,6 +726,57 @@ namespace Net.Pkcs11Interop.HighLevelAPI81.Factories
         public ICkX942MqvDeriveParams CreateCkX942MqvDeriveParams(ulong kdf, byte[] otherInfo, byte[] publicData, ulong privateDataLen, IObjectHandle privateData, byte[] publicData2, IObjectHandle publicKey)
         {
             return new CkX942MqvDeriveParams(ConvertUtils.UInt64FromUInt64(kdf), otherInfo, publicData, ConvertUtils.UInt64FromUInt64(privateDataLen), privateData, publicData2, publicKey);
+        }
+
+        /// <summary>
+        /// Creates parameters for the CKM_CLOUDHSM_SP800_108_COUNTER_KDF mechanism
+        /// </summary>
+        /// <param name='prftype'>PRF type (e.g., CKM_SHA256_HMAC, CKM_SHA512_HMAC)</param>
+        /// <param name='counterWidthInBits'>Counter width in bits (typically 32)</param>
+        /// <param name='label'>PRF label (application-specific identifier)</param>
+        /// <param name='context'>PRF context (application-specific context data)</param>
+        /// <param name='dkmLengthMethod'>DKM length method (SUM_OF_KEYS or SUM_OF_SEGMENTS)</param>
+        /// <param name='dkmWidthInBits'>DKM width in bits (typically 32)</param>
+        /// <returns>Parameters for the CKM_CLOUDHSM_SP800_108_COUNTER_KDF mechanism</returns>
+        public ICkSp800108KdfParams CreateCkSp800108KdfParams(ulong prftype, uint counterWidthInBits, byte[] label, byte[] context, CK_SP800_108.DKM_LENGTH_METHOD dkmLengthMethod, uint dkmWidthInBits)
+        {
+            // Build the list of PRF data parameters internally
+            List<ISp800108PrfDataParam> dataParams = new List<ISp800108PrfDataParam>();
+
+            // 1. Counter format: width in bits (NativeULong is UInt64 for API81)
+            Sp800108PrfDataParam counterFormat = new Sp800108PrfDataParam();
+            counterFormat.Type = CK_SP800_108.PRF_DATA_TYPE.SP800_108_COUNTER_FORMAT;
+            counterFormat.Value = BitConverter.GetBytes((UInt64)counterWidthInBits);
+            dataParams.Add(counterFormat);
+
+            // 2. PRF Label
+            if (label != null && label.Length > 0)
+            {
+                Sp800108PrfDataParam labelParam = new Sp800108PrfDataParam();
+                labelParam.Type = CK_SP800_108.PRF_DATA_TYPE.SP800_108_PRF_LABEL;
+                labelParam.Value = label;
+                dataParams.Add(labelParam);
+            }
+
+            // 3. PRF Context
+            if (context != null && context.Length > 0)
+            {
+                Sp800108PrfDataParam contextParam = new Sp800108PrfDataParam();
+                contextParam.Type = CK_SP800_108.PRF_DATA_TYPE.SP800_108_PRF_CONTEXT;
+                contextParam.Value = context;
+                dataParams.Add(contextParam);
+            }
+
+            // 4. DKM Length Format: method (NativeULong) + width (NativeULong)
+            Sp800108PrfDataParam dkmLengthFormat = new Sp800108PrfDataParam();
+            dkmLengthFormat.Type = CK_SP800_108.PRF_DATA_TYPE.SP800_108_DKM_FORMAT;
+            byte[] dkmFormatBytes = new byte[16]; // 2 UInt64 values for API81
+            BitConverter.GetBytes((UInt64)dkmLengthMethod).CopyTo(dkmFormatBytes, 0);
+            BitConverter.GetBytes((UInt64)dkmWidthInBits).CopyTo(dkmFormatBytes, 8);
+            dkmLengthFormat.Value = dkmFormatBytes;
+            dataParams.Add(dkmLengthFormat);
+
+            return new CkSp800108KdfParams(ConvertUtils.UInt64ToCKM(prftype), dataParams);
         }
     }
 }

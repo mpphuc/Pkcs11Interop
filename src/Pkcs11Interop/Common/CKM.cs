@@ -1693,6 +1693,11 @@ namespace Net.Pkcs11Interop.Common
         /// <summary>
         /// Permanently reserved for token vendors
         /// </summary>
-        CKM_VENDOR_DEFINED = 0x80000000
+        CKM_VENDOR_DEFINED = 0x80000000,
+
+        /// <summary>
+        /// AWS CloudHSM SP800-108 Counter KDF vendor mechanism
+        /// </summary>
+        CKM_CLOUDHSM_SP800_108_COUNTER_KDF = CKM_VENDOR_DEFINED | 0x00000001
     }
 }

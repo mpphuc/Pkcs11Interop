@@ -749,5 +749,20 @@ namespace Net.Pkcs11Interop.HighLevelAPI.Factories
         {
             return _factory.CreateCkX942MqvDeriveParams(kdf, otherInfo, publicData, privateDataLen, privateData, publicData2, publicKey);
         }
+
+        /// <summary>
+        /// Creates parameters for the CKM_CLOUDHSM_SP800_108_COUNTER_KDF mechanism
+        /// </summary>
+        /// <param name='prftype'>PRF type (e.g., CKM_SHA256_HMAC, CKM_SHA512_HMAC)</param>
+        /// <param name='counterWidthInBits'>Counter width in bits (typically 32)</param>
+        /// <param name='label'>PRF label (application-specific identifier)</param>
+        /// <param name='context'>PRF context (application-specific context data)</param>
+        /// <param name='dkmLengthMethod'>DKM length method (SUM_OF_KEYS or SUM_OF_SEGMENTS)</param>
+        /// <param name='dkmWidthInBits'>DKM width in bits (typically 32)</param>
+        /// <returns>Parameters for the CKM_CLOUDHSM_SP800_108_COUNTER_KDF mechanism</returns>
+        public ICkSp800108KdfParams CreateCkSp800108KdfParams(ulong prftype, uint counterWidthInBits, byte[] label, byte[] context, CK_SP800_108.DKM_LENGTH_METHOD dkmLengthMethod, uint dkmWidthInBits)
+        {
+            return _factory.CreateCkSp800108KdfParams(prftype, counterWidthInBits, label, context, dkmLengthMethod, dkmWidthInBits);
+        }
     }
 }
