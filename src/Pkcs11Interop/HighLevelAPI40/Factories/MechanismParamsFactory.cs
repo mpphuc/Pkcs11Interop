@@ -743,10 +743,14 @@ namespace Net.Pkcs11Interop.HighLevelAPI40.Factories
             // Build the list of PRF data parameters internally
             List<ISp800108PrfDataParam> dataParams = new List<ISp800108PrfDataParam>();
 
-            // 1. Counter format: width in bits (NativeULong is UInt32 for API40)
+            // 1. Counter format: width in bits
+            // SP800-108 requires 32-bit unsigned integer, big-endian byte order for counter and output length
             Sp800108PrfDataParam counterFormat = new Sp800108PrfDataParam();
             counterFormat.Type = CK_SP800_108.PRF_DATA_TYPE.SP800_108_COUNTER_FORMAT;
-            counterFormat.Value = BitConverter.GetBytes((UInt32)counterWidthInBits);
+            byte[] counterBytes = BitConverter.GetBytes((UInt32)counterWidthInBits);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(counterBytes);
+            counterFormat.Value = counterBytes;
             dataParams.Add(counterFormat);
 
             // 2. PRF Label
@@ -767,12 +771,20 @@ namespace Net.Pkcs11Interop.HighLevelAPI40.Factories
                 dataParams.Add(contextParam);
             }
 
-            // 4. DKM Length Format: method (NativeULong) + width (NativeULong)
+            // 4. DKM Length Format: method + width
+            // SP800-108 requires 32-bit unsigned integers, big-endian byte order for counter and output length
             Sp800108PrfDataParam dkmLengthFormat = new Sp800108PrfDataParam();
             dkmLengthFormat.Type = CK_SP800_108.PRF_DATA_TYPE.SP800_108_DKM_FORMAT;
-            byte[] dkmFormatBytes = new byte[8]; // 2 UInt32 values for API40
-            BitConverter.GetBytes((UInt32)dkmLengthMethod).CopyTo(dkmFormatBytes, 0);
-            BitConverter.GetBytes((UInt32)dkmWidthInBits).CopyTo(dkmFormatBytes, 4);
+            byte[] dkmFormatBytes = new byte[8]; // 2 UInt32 values (4 bytes each) per SP800-108 standard
+            byte[] methodBytes = BitConverter.GetBytes((UInt32)dkmLengthMethod);
+            byte[] widthBytes = BitConverter.GetBytes((UInt32)dkmWidthInBits);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(methodBytes);
+                Array.Reverse(widthBytes);
+            }
+            methodBytes.CopyTo(dkmFormatBytes, 0);
+            widthBytes.CopyTo(dkmFormatBytes, 4);
             dkmLengthFormat.Value = dkmFormatBytes;
             dataParams.Add(dkmLengthFormat);
 
